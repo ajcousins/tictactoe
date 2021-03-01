@@ -1,0 +1,68 @@
+body {
+    text-align: center;
+    background-color: #333333;
+    color: white;
+    margin: 0px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.boardContainer {
+    margin: auto;
+    margin-top: 15vh;
+    width: 308px;
+    height: 308px;
+
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.square {
+    width: 100px;
+    height: 100px;
+
+}
+
+.s00 {
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+}
+.s01 {
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+}
+.s02 {
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+}
+
+.s10 {
+    border-top: 2px solid white;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+}
+.s11 {
+    border-top: 2px solid white;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+}
+.s12 {
+    border-top: 2px solid white;
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+}
+
+.s20 {
+    border-top: 2px solid white;
+    border-right: 2px solid white;
+}
+.s21 {
+    border-top: 2px solid white;
+    border-right: 2px solid white;
+    border-left: 2px solid white;
+}
+.s22 {
+    border-top: 2px solid white;
+    border-left: 2px solid white;
+}
