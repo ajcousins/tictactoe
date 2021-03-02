@@ -11,12 +11,22 @@ h1 {
     position: relative;
     left: 5px;
     display: inline-block;
-    margin-top: 30px;
+    margin-top: 50px;
 }
+
+a {
+    text-decoration: none;
+    color: rgb(165, 216, 25);
+}
+
+a:hover {
+    color:rgb(194, 233, 89);
+}
+
 
 .boardContainer {
     margin: auto;
-    margin-top: 15vh;
+    margin-top: 10vh;
     width: 308px;
     height: 308px;
 
@@ -73,4 +83,11 @@ h1 {
 .s22 {
     border-top: 2px solid white;
     border-left: 2px solid white;
+}
+
+.highlightX {
+    background-color: rgb(165, 216, 25);
+}
+.highlightO {
+    background-color: rgb(216, 47, 25);
 }

@@ -22,27 +22,34 @@ function playerAction (coord) {
     // If already filled: pass.
     if (gameBoard.squares[index].mark != "") return null;
 
+    if (gameFlow.turn === 0) return null;
+
+    //gameChecks(1);
+    //gameChecks(2);
     if (gameFlow.turn == 1) {
         gameBoard.squares[index].mark = "X";
         gameBoard.squares[index].div.innerHTML = `<img src="static/X_02.png">`
-        if (checkStatus("X")) {
-            console.log("X wins");
-            gameFlow.changeTurn();
+        if (checkWin("X")) {
+            gameFlow.changeTurn("1");
+        } else if (checkDraw()) {
+            gameFlow.changeTurn("Draw");
         } else {
             gameFlow.changeTurn("playerTwo")
         }
-        
-    } else if (gameFlow.turn == 2) {
+    } else {
         gameBoard.squares[index].mark = "O";
         gameBoard.squares[index].div.innerHTML = `<img src="static/O_02.png">`
-        if (checkStatus("O")) {
-            console.log("O wins");
-            gameFlow.changeTurn();
+        if (checkWin("O")) {
+            gameFlow.changeTurn("2");
+        } else if (checkDraw()) {
+            gameFlow.changeTurn("Draw");
         } else {
             gameFlow.changeTurn("playerOne")
         }
-    }
+    } 
 }
+
+
 
 // Player factory function
 const player = (playerName, symbol) => {
@@ -65,32 +72,36 @@ const gameFlow = (() => {
     
     const changeTurn = function (player) {
         let textDisplay = document.querySelector("#textDisplay");
-        if (player == "playerOne") {
+        if (player == "Draw") {
+            this.turn = 0;
+            textDisplay.textContent = "Draw";
+        } else if (player === "1" || player === "2") {
+            this.turn = 0;
+            textDisplay.textContent = `Player ${player} Wins!`;
+        }
+        else if (player == "playerOne") {
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
         } else if (player == "playerTwo") {
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
-        } else {
-            this.turn = 0;
-        }
+        } 
     }
-
     return {turn, changeTurn};
 })();
 
 
-function checkStatus (X) {
-
-    // Check for draw
+const checkDraw = () => {
     let count = 0;
     for (let i = 0; i < gameBoard.squares.length; i++) {
         if (gameBoard.squares[i].mark == "") {
             count++;
         } 
     }
-    if (count === 0) console.log("Draw!");
+    if (count === 0) return true;
+}
 
+const checkWin = (X) => {
     const winningBoard = [
         [1, 1, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 1, 1, 0, 0, 0],
@@ -110,7 +121,16 @@ function checkStatus (X) {
             }
         }
         if (count === 3) {
+            highlight(winningBoard[i], X);
             return true;
             }
+    }
+}
+
+const highlight = (pattern, mark) => {
+    for (let i = 0; i < 9; i ++) {
+        if (pattern[i] === 1) {
+            gameBoard.squares[i].div.classList.add(`highlight${mark}`)
+        }
     }
 }
