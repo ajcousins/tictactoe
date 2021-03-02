@@ -12,20 +12,28 @@ const gameBoard = (() => {
             }
         }
     
-    return {squares};
+        const current = () => {
+            let current = [];
+            for (let i = 0; i < 9; i++) {
+                current.push(squares[i].mark);
+            }
+            return current;
+        }
+    
+    return {squares, current};
 })();
 
 function playerAction (coord) {
+    //console.log(coord);
     // Check if square is already filled.
     let index = gameBoard.squares.findIndex(item => item.coord === coord);
 
     // If already filled: pass.
     if (gameBoard.squares[index].mark != "") return null;
 
+    // If game has ended: pass.
     if (gameFlow.turn === 0) return null;
 
-    //gameChecks(1);
-    //gameChecks(2);
     if (gameFlow.turn == 1) {
         gameBoard.squares[index].mark = "X";
         gameBoard.squares[index].div.innerHTML = `<img src="static/X_02.png">`
@@ -75,16 +83,21 @@ const gameFlow = (() => {
         if (player == "Draw") {
             this.turn = 0;
             textDisplay.textContent = "Draw";
-        } else if (player === "1" || player === "2") {
+            document.querySelector("#tryAgain").innerHTML = "Try Again?"
+        } else if (player == 1 || player == 2) {
             this.turn = 0;
             textDisplay.textContent = `Player ${player} Wins!`;
-        }
-        else if (player == "playerOne") {
+            document.querySelector("#tryAgain").innerHTML = "Try Again?"
+        } else if (player == "playerOne") {
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
         } else if (player == "playerTwo") {
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
+            //console.log("here");
+            if (opponent.getOpp() === 1) {
+                console.log(easyAI.move());
+            }
         } 
     }
     return {turn, changeTurn};
@@ -134,3 +147,41 @@ const highlight = (pattern, mark) => {
         }
     }
 }
+
+
+// opponent selection module
+const opponent = (() => {
+    let opp = 0;
+    const getOpp = () => opp;
+    const change = document.querySelector(".changeOpp")
+    change.addEventListener("click", nextOpp);
+
+    function nextOpp() {
+        if (opp == 2) {
+            opp = 0;
+        }
+        else opp += 1;
+        display()
+        console.log(opp)
+    }
+    
+    const display = () => {
+        if (opp === 1) {
+            document.querySelector(".opp").textContent = "Easy Computer"
+            computer = "Easy Computer";
+        } else if (opp === 2) {
+            document.querySelector(".opp").textContent = "Unbeatable AI"
+        } else {
+            document.querySelector(".opp").textContent = "Human"
+        }
+    }
+    return {getOpp};
+})();
+
+// Easy AI Module
+const easyAI = (() => {
+    const move = () => {
+        console.log(gameBoard.current());
+    }
+    return {move};
+})();
