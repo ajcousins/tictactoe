@@ -1,3 +1,4 @@
+'use strict';
 // gameBoard module
 const gameBoard = (() => {
     const squares = []
@@ -185,3 +186,201 @@ const easyAI = (() => {
     }
     return {move};
 })();
+
+const playerToMove = (board) => {
+    let countX = 0;
+    let countO = 0;
+    for (let i = 0; i < 9; i++) {
+        if (board[i] == "X") {
+            countX++;
+        }
+        if (board[i] == "O") {
+            countO++;
+        }
+    }
+    if (countX > countO) {
+        return "O";
+    } else {
+        return "X";
+    }
+}
+
+// Returns array indices of possble moves.
+const actionsList = (board) => {
+    let set = [];
+    for (let i = 0; i < 9; i++) {
+        if (board[i] == "") {
+            set.push(`s${i}`);
+        }
+    }
+    return set
+}
+
+// Takes a board and action as input and returns a new board state.
+const result = (board, action) => {
+    let index = action[1];
+    let mark;
+    let newBoard = board;
+    if (playerToMove(board) === "X") {
+        mark = "X"
+    } else {
+        mark = "O"
+    }
+    if (board[index] != "") {
+        return "Not allowed"
+    } else {
+        newBoard.splice(index, 1, mark);
+    }
+
+    return newBoard;
+}
+
+// Takes a board and returns the winner of the board if there is one.
+const winner = (board) => {
+    let winner = null;
+    const winningBoard = [
+        [1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1],
+        [1, 0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 1, 0, 0, 1, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 1],
+        [0, 0, 1, 0, 1, 0, 1, 0, 0],
+    ];
+
+    for (let h = 0; h < 2; h++) {
+        let mark;
+        h === 0 ? mark = "X" : mark = "O";
+        for (let i = 0; i < 8; i++) {
+            let count = 0;
+            for (let j = 0; j < 9; j++) {
+                if (board[j] == mark && winningBoard[i][j] === 1) {
+                    count++;
+                }
+            }
+            if (count === 3) {
+                winner = mark;
+            }
+        }
+
+    }
+    return winner;
+}
+// Returns boolean whether the game is over or not.
+const terminal = (board) => {
+    if (winner(board)) {
+        return true
+    } 
+    if (!board.includes("")) {
+        return true
+    }
+    return false
+}
+
+// Accepts board as input, outputs the utiliy: -1, 0, 1.
+const utility = (board) => {
+    if (winner(board) === "X") {
+        return 10;
+    } else if (winner(board) === "O") {
+        return -10;
+    } else if (terminal(board) === true) {
+        return 0;
+    }
+}
+
+// Minimax: takes board as input and outputs optimal move.
+const minimax = (board) => {
+    
+    // Check whose move. Sets varable to X or O.
+    const copyBoard = board;
+    //console.log(copyBoard);
+    const currentPlayer = playerToMove(copyBoard);
+    let bestMove;
+
+    if (currentPlayer == "X") {
+        bestMove = maxValue(copyBoard);
+        //console.log(maxValue(copyBoard));
+    } else {
+        bestMove = minValue(copyBoard);
+    }
+
+    function maxValue(state) {
+        //debugger;
+        if (terminal(state)) {
+            //console.log("terminal?", terminal(state));
+            return {singleValue: utility(state)};
+        }
+        let legalMoves = actionsList(state);
+        let v = -10;
+        let move;
+        let moves = [];
+        let singleMove;
+        let singleValue;
+        // For each legal move...
+        for (let i = 0; i < legalMoves.length; i++) {
+            
+            let check = minValue(result(state, legalMoves[i])).singleValue
+            move = {value: check, move: legalMoves[i]};
+            moves.push(move);
+        }
+        console.log(moves);
+        highestLoop:
+        for (let j = 0; j < moves.length; j++) {
+            if (moves[j].value == 10) {
+                singleMove = moves[j].move;
+                singleValue = 10;
+                break highestLoop;
+            } else if (moves[j].value == 0) {
+                singleMove = moves[j].move;
+                singleValue = 0;
+                break highestLoop;
+            } else {
+                singleMove = moves[j].move;
+                singleValue = -10;
+            }
+        }
+        return {singleValue, singleMove}
+    }
+
+    function minValue(state) {
+        if (terminal(state)) {
+            return {singleValue: utility(state)};
+        }
+        let legalMoves = actionsList(state);
+        let v = 10;
+        let move;
+        let moves = [];
+        let singleMove;
+        let singleValue;
+        // For each legal move...
+        for (let i = 0; i < legalMoves.length; i++) {
+
+            let check = maxValue(result(state, legalMoves[i])).singleValue
+            move = {value: check, move: legalMoves[i]};
+            moves.push(move);
+        }
+        console.log(moves);
+        lowestLoop:
+        for (let j = 0; j < moves.length; j++) {
+            if (moves[j].value == -10) {
+                singleMove = moves[j].move;
+                singleValue = -10;
+                break lowestLoop;
+            } else if (moves[j].value == 0) {
+                singleMove = moves[j].move;
+                singleValue = 0;
+                break lowestLoop;
+            } else {
+                singleMove = moves[j].move;
+                singleValue = 10;
+            }
+        }
+        return {singleValue, singleMove}
+    }
+    
+    //console.log(copyBoard);
+    // return {currentPlayer, board, actions, util, move};
+    return {bestMove};
+
+}

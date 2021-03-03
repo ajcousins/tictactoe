@@ -53,6 +53,7 @@ a:hover {
     font-size: 12px;
     cursor: pointer;
     user-select: none;
+    margin-top: 5px;
 }
 .changeOpp:hover {
     color: rgb(165, 216, 25);
