@@ -49,13 +49,23 @@ a:hover {
 .player {
     flex-basis: 40%;
 }
-.changeOpp {
+.changeOpp1 {
     font-size: 12px;
     cursor: pointer;
     user-select: none;
     margin-top: 5px;
 }
-.changeOpp:hover {
+.changeOpp1:hover {
+    color: rgb(165, 216, 25);
+}
+
+.changeOpp2 {
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    margin-top: 5px;
+}
+.changeOpp2:hover {
     color: rgb(165, 216, 25);
 }
 
@@ -66,6 +76,10 @@ a:hover {
 }
 .square:hover {
     background-color: #3d3d3d;
+}
+
+.actionAI {
+    background-color:rgb(216, 25, 143);
 }
 
 .s00 {

@@ -92,12 +92,21 @@ const gameFlow = (() => {
         } else if (player == "playerOne") {
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
+            if (opponent.getOpp1() === 1) {
+                AIController(1);
+            }
+            if (opponent.getOpp1() === 2) {
+                AIController(2);
+            }
         } else if (player == "playerTwo") {
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
             //console.log("here");
-            if (opponent.getOpp() === 1) {
-                console.log(easyAI.move());
+            if (opponent.getOpp2() === 1) {
+                AIController(1);
+            }
+            if (opponent.getOpp2() === 2) {
+                AIController(2);
             }
         } 
     }
@@ -152,32 +161,79 @@ const highlight = (pattern, mark) => {
 
 // opponent selection module
 const opponent = (() => {
-    let opp = 0;
-    const getOpp = () => opp;
-    const change = document.querySelector(".changeOpp")
-    change.addEventListener("click", nextOpp);
-
-    function nextOpp() {
-        if (opp == 2) {
-            opp = 0;
-        }
-        else opp += 1;
-        display()
-        console.log(opp)
-    }
+    let opp1 = 0;
+    let opp2 = 0;
+    const getOpp1 = () => opp1;
+    const getOpp2 = () => opp2;
+    const change1 = document.querySelector(".changeOpp1")
+    const change2 = document.querySelector(".changeOpp2")
     
-    const display = () => {
-        if (opp === 1) {
-            document.querySelector(".opp").textContent = "Easy Computer"
-            computer = "Easy Computer";
-        } else if (opp === 2) {
-            document.querySelector(".opp").textContent = "Unbeatable AI"
+    const display = (text, value) => {
+        if (value === 1) {
+            document.querySelector(`.${text}`).textContent = "Easy Computer"
+            if (text == "opp1") {
+                textDisplay.textContent = "Start AI";
+            }
+        } else if (value === 2) {
+            document.querySelector(`.${text}`).textContent = "Hard Computer"
+            if (text == "opp1") {
+                textDisplay.textContent = "Start AI";
+            }
         } else {
-            document.querySelector(".opp").textContent = "Human"
+            document.querySelector(`.${text}`).textContent = "Human"
+            if (text == "opp1") {
+                textDisplay.textContent = "Player 1's turn: X";
+            }
         }
     }
-    return {getOpp};
+
+    function nextOpp(n) {
+        console.log("here");
+        if (n == 1) {
+            if (opp1 == 2) {
+                opp1 = 0;
+            }
+            else opp1 += 1;
+            display("opp1", opp1)
+        } else if (n == 2) {
+            if (opp2 == 2) {
+                opp2 = 0;
+            }
+            else opp2 += 1;
+            display("opp2", opp2)
+        } 
+    }
+
+    change1.addEventListener("click", () => nextOpp(1));
+    change2.addEventListener("click", () => nextOpp(2));
+
+
+    return {getOpp1, getOpp2};
 })();
+
+
+function AIController () {
+    console.log("AI Hard do something.")
+    console.log(minimax(gameBoard.current()).bestMove.move);
+    const coords = ["00", "01", "02", "10", "11", "12", "20", "21", "22"]
+    const move = minimax(gameBoard.current()).bestMove.move[1]
+    
+    setTimeout(function() {
+        playerAction(coords[move]);
+        highlightSquare(move);
+    }, 1000);
+
+}
+
+function highlightSquare (move) {
+    const grid = ["s00", "s01", "s02", "s10", "s11", "s12", "s20", "s21", "s22"]
+    
+    console.log("Highlight", grid[move]);
+
+    //// Where I left off...
+}
+
+
 
 // Easy AI Module
 const easyAI = (() => {
