@@ -220,7 +220,11 @@ const actionsList = (board) => {
 const result = (board, action) => {
     let index = action[1];
     let mark;
-    let newBoard = board;
+    let newBoard = []
+    for (let i = 0; i < 9; i++) {
+        newBoard.push(board[i]);
+    }
+
     if (playerToMove(board) === "X") {
         mark = "X"
     } else {
@@ -281,9 +285,9 @@ const terminal = (board) => {
 // Accepts board as input, outputs the utiliy: -1, 0, 1.
 const utility = (board) => {
     if (winner(board) === "X") {
-        return 10;
+        return 1;
     } else if (winner(board) === "O") {
-        return -10;
+        return -1;
     } else if (terminal(board) === true) {
         return 0;
     }
@@ -293,90 +297,54 @@ const utility = (board) => {
 const minimax = (board) => {
     
     // Check whose move. Sets varable to X or O.
-    const copyBoard = board;
-    //console.log(copyBoard);
-    const currentPlayer = playerToMove(copyBoard);
+    const currentPlayer = playerToMove(board);
     let bestMove;
 
     if (currentPlayer == "X") {
-        bestMove = maxValue(copyBoard);
+        bestMove = maxValue(board);
         //console.log(maxValue(copyBoard));
     } else {
-        bestMove = minValue(copyBoard);
+        bestMove = minValue(board);
     }
 
     function maxValue(state) {
-        //debugger;
         if (terminal(state)) {
-            //console.log("terminal?", terminal(state));
-            return {singleValue: utility(state)};
+            return {value: utility(state)};
         }
         let legalMoves = actionsList(state);
-        let v = -10;
+        let v = -Infinity;
         let move;
-        let moves = [];
-        let singleMove;
-        let singleValue;
         // For each legal move...
         for (let i = 0; i < legalMoves.length; i++) {
-            
-            let check = minValue(result(state, legalMoves[i])).singleValue
-            move = {value: check, move: legalMoves[i]};
-            moves.push(move);
-        }
-        console.log(moves);
-        highestLoop:
-        for (let j = 0; j < moves.length; j++) {
-            if (moves[j].value == 10) {
-                singleMove = moves[j].move;
-                singleValue = 10;
-                break highestLoop;
-            } else if (moves[j].value == 0) {
-                singleMove = moves[j].move;
-                singleValue = 0;
-                break highestLoop;
-            } else {
-                singleMove = moves[j].move;
-                singleValue = -10;
+
+            //debugger;
+            let check = minValue(result(state, legalMoves[i])).value
+            if (check > v) {
+                v = check;
+                move = legalMoves[i];
             }
         }
-        return {singleValue, singleMove}
+        return {value: v, move: move}
     }
 
     function minValue(state) {
         if (terminal(state)) {
-            return {singleValue: utility(state)};
+            return {value: utility(state)};
         }
         let legalMoves = actionsList(state);
-        let v = 10;
+        let v = Infinity;
         let move;
-        let moves = [];
-        let singleMove;
-        let singleValue;
         // For each legal move...
         for (let i = 0; i < legalMoves.length; i++) {
 
-            let check = maxValue(result(state, legalMoves[i])).singleValue
-            move = {value: check, move: legalMoves[i]};
-            moves.push(move);
-        }
-        console.log(moves);
-        lowestLoop:
-        for (let j = 0; j < moves.length; j++) {
-            if (moves[j].value == -10) {
-                singleMove = moves[j].move;
-                singleValue = -10;
-                break lowestLoop;
-            } else if (moves[j].value == 0) {
-                singleMove = moves[j].move;
-                singleValue = 0;
-                break lowestLoop;
-            } else {
-                singleMove = moves[j].move;
-                singleValue = 10;
+            //debugger;
+            let check = maxValue(result(state, legalMoves[i])).value
+            if (check < v) {
+                v = check;
+                move = legalMoves[i];
             }
         }
-        return {singleValue, singleMove}
+        return {value: v, move: move}
     }
     
     //console.log(copyBoard);
