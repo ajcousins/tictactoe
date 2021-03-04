@@ -91,6 +91,9 @@ const gameFlow = (() => {
     let turn = 1;
     
     const changeTurn = function (player) {
+        console.log("changeTurn:", player, "turn", this.turn);
+        console.log("getOpp1:", opponent.getOpp1());
+        console.log("getOpp2:", opponent.getOpp2());
         let textDisplay = document.querySelector("#textDisplay");
         if (player == "Draw") {
             this.turn = 0;
@@ -101,29 +104,35 @@ const gameFlow = (() => {
             textDisplay.textContent = `Player ${player} Wins!`;
             tryAgain();
         } else if (player == "playerOne") {
+            console.log("a");
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
             if (opponent.getOpp1() === 1) {
                 setTimeout(() => {
+                    console.log("Calls AI function (1a)");
                     AIController(1);
                 }, 1000);
                 
             }
-            if (opponent.getOpp1() === 2) {
+            else if (opponent.getOpp1() === 2) {
                 setTimeout(() => {
+                    console.log("Calls AI function (2a)");
                     AIController(2);
                 }, 1000);
             }
         } else if (player == "playerTwo") {
+            console.log("b");
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
             if (opponent.getOpp2() === 1) {
                 setTimeout(() => {
+                    console.log("Calls AI function (1b)");
                     AIController(1);
                 }, 1000);
             }
-            if (opponent.getOpp2() === 2) {
+            else if (opponent.getOpp2() === 2) {
                 setTimeout(() => {
+                    console.log("Calls AI function (2b)");
                     AIController(2);
                 }, 1000);
             }
@@ -268,12 +277,12 @@ function resetGame() {
 
 
 
-function startAIButton(AILevel) {
+function startAIButton() {
     const button = document.querySelector("#startAI")
     button.innerHTML = "Start AI"
     button.addEventListener("click", () => {
         button.innerHTML = "";
-        AIController(AILevel);
+        gameFlow.changeTurn("playerOne");
     })
 }
 
@@ -331,7 +340,6 @@ function highlightSquare (move, opp) {
 // Easy AI 
 const easyAI = (board) => {
     //setTimeout(function(){
-        console.log("Here");
         const legalMoves = actionsList(board);
         let move = legalMoves[Math.floor(Math.random() * legalMoves.length)]
         return move;
