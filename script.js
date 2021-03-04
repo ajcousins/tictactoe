@@ -1,31 +1,42 @@
 'use strict';
 // gameBoard module
 const gameBoard = (() => {
+
     const squares = []
-        for (let i = 0; i < 3; i ++) {
-            for (let j = 0; j < 3; j++) {
-                let div = document.querySelector(`.s${i}${j}`);
-                div.addEventListener("click", function () {
-                    playerAction(`${i}${j}`);
-                });
-                let square = {coord: `${i}${j}`, mark: "", div: div};
-                squares.push(square);
-            }
+    for (let i = 0; i < 3; i ++) {
+        for (let j = 0; j < 3; j++) {
+            let div = document.querySelector(`.s${i}${j}`);
+            div.addEventListener("click", function () {
+                playerAction(`${i}${j}`);
+            });
+            let square = {coord: `${i}${j}`, mark: "", div: div};
+            squares.push(square);
         }
-    
-        const current = () => {
-            let current = [];
-            for (let i = 0; i < 9; i++) {
-                current.push(squares[i].mark);
-            }
-            return current;
+    }
+
+    const current = () => {
+        let current = [];
+        for (let i = 0; i < 9; i++) {
+            current.push(squares[i].mark);
         }
+        return current;
+    }
     
-    return {squares, current};
+    const resetBoard = () => {
+        for (let i = 0; i < 9; i++) {
+            squares[i].mark = "";
+        }
+    }
+
+    return {squares, current, resetBoard};
 })();
 
+
 function playerAction (coord) {
-    //console.log(coord);
+    // After first player action..
+    // .. remove option to change opponent.
+    
+
     // Check if square is already filled.
     let index = gameBoard.squares.findIndex(item => item.coord === coord);
 
@@ -84,29 +95,37 @@ const gameFlow = (() => {
         if (player == "Draw") {
             this.turn = 0;
             textDisplay.textContent = "Draw";
-            document.querySelector("#tryAgain").innerHTML = "Try Again?"
+            tryAgain();
         } else if (player == 1 || player == 2) {
             this.turn = 0;
             textDisplay.textContent = `Player ${player} Wins!`;
-            document.querySelector("#tryAgain").innerHTML = "Try Again?"
+            tryAgain();
         } else if (player == "playerOne") {
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
             if (opponent.getOpp1() === 1) {
-                AIController(1);
+                setTimeout(() => {
+                    AIController(1);
+                }, 1000);
+                
             }
             if (opponent.getOpp1() === 2) {
-                AIController(2);
+                setTimeout(() => {
+                    AIController(2);
+                }, 1000);
             }
         } else if (player == "playerTwo") {
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
-            //console.log("here");
             if (opponent.getOpp2() === 1) {
-                AIController(1);
+                setTimeout(() => {
+                    AIController(1);
+                }, 1000);
             }
             if (opponent.getOpp2() === 2) {
-                AIController(2);
+                setTimeout(() => {
+                    AIController(2);
+                }, 1000);
             }
         } 
     }
@@ -171,16 +190,20 @@ const opponent = (() => {
     const display = (text, value) => {
         if (value === 1) {
             document.querySelector(`.${text}`).textContent = "Easy Computer"
+            document.querySelector(`.${text}`).classList.add("easyColor");
             if (text == "opp1") {
-                textDisplay.textContent = "Start AI";
+                startAIButton(value);
             }
         } else if (value === 2) {
             document.querySelector(`.${text}`).textContent = "Hard Computer"
+            document.querySelector(`.${text}`).classList.remove("easyColor");
+            document.querySelector(`.${text}`).classList.add("hardColor");
             if (text == "opp1") {
-                textDisplay.textContent = "Start AI";
+                startAIButton(value);
             }
         } else {
             document.querySelector(`.${text}`).textContent = "Human"
+            document.querySelector(`.${text}`).classList.remove("hardColor");
             if (text == "opp1") {
                 textDisplay.textContent = "Player 1's turn: X";
             }
@@ -188,7 +211,6 @@ const opponent = (() => {
     }
 
     function nextOpp(n) {
-        console.log("here");
         if (n == 1) {
             if (opp1 == 2) {
                 opp1 = 0;
@@ -211,37 +233,110 @@ const opponent = (() => {
     return {getOpp1, getOpp2};
 })();
 
-
-function AIController () {
-    console.log("AI Hard do something.")
-    console.log(minimax(gameBoard.current()).bestMove.move);
-    const coords = ["00", "01", "02", "10", "11", "12", "20", "21", "22"]
-    const move = minimax(gameBoard.current()).bestMove.move[1]
-    
-    setTimeout(function() {
-        playerAction(coords[move]);
-        highlightSquare(move);
-    }, 1000);
-
+function tryAgain() {
+    const button = document.querySelector("#tryAgain")
+    button.innerHTML = "Try Again?";
+    button.addEventListener("click", () => {
+        resetGame();
+    })
 }
+            
 
-function highlightSquare (move) {
-    const grid = ["s00", "s01", "s02", "s10", "s11", "s12", "s20", "s21", "s22"]
+let resetCount = 0;
+function resetGame() {
     
-    console.log("Highlight", grid[move]);
-
-    //// Where I left off...
-}
-
-
-
-// Easy AI Module
-const easyAI = (() => {
-    const move = () => {
-        console.log(gameBoard.current());
+    if (resetCount === 2) {
+        location.reload();
     }
-    return {move};
-})();
+
+    gameBoard.resetBoard();
+    document.querySelector("#textDisplay").textContent = "Player 1's turn: X";
+    for (let i = 0; i < 9; i++) {
+        gameBoard.squares[i].div.innerHTML = `<img src="">`
+        gameBoard.squares[i].div.classList.remove(`actionAI1`)
+        gameBoard.squares[i].div.classList.remove(`actionAI2`)
+        gameBoard.squares[i].div.classList.remove(`highlightX`)
+        gameBoard.squares[i].div.classList.remove(`highlightO`)
+        gameBoard.squares[i].div.classList.remove("fade");
+    }
+    gameFlow.changeTurn("playerOne");
+    document.querySelector("#tryAgain").innerHTML = "";
+    resetCount++;
+
+
+}
+
+
+
+function startAIButton(AILevel) {
+    const button = document.querySelector("#startAI")
+    button.innerHTML = "Start AI"
+    button.addEventListener("click", () => {
+        button.innerHTML = "";
+        AIController(AILevel);
+    })
+}
+
+
+
+function AIController (AILevel) {
+    const coords = ["00", "01", "02", "10", "11", "12", "20", "21", "22"]
+    let move;
+    if (terminal(gameBoard.current())) {
+        return;
+    }
+    if (AILevel === 1) {
+
+
+        let moveObj = easyAI(gameBoard.current());
+        console.log("Easy", moveObj)
+        if (moveObj) {
+            move = moveObj[1];
+        } else return;
+            playerAction(coords[move]);
+            highlightSquare(move, 1);
+
+
+    } else if (AILevel === 2) {
+        
+        let moveObj;
+        moveObj = minimax(gameBoard.current()).bestMove.move
+        console.log("Hard", moveObj)
+        if (moveObj) {
+            move = moveObj[1];
+        } else return;
+
+            playerAction(coords[move]);
+            highlightSquare(move, 2);
+
+    }
+}
+
+function highlightSquare (move, opp) {
+    const grid = ["s00", "s01", "s02", "s10", "s11", "s12", "s20", "s21", "s22"]
+    let highlight = grid[move];
+    let square = document.querySelector(`.${highlight}`);
+    square.classList.add(`actionAI${opp}`);
+    setTimeout(function () {
+        square.classList.add("fade");
+    }, 10);
+    setTimeout(function () {
+        square.classList.remove(`actionAI${opp}`);
+        square.classList.remove("fade");
+    }, 1200);
+}
+
+
+
+// Easy AI 
+const easyAI = (board) => {
+    //setTimeout(function(){
+        console.log("Here");
+        const legalMoves = actionsList(board);
+        let move = legalMoves[Math.floor(Math.random() * legalMoves.length)]
+        return move;
+    //}, 500);
+}
 
 const playerToMove = (board) => {
     let countX = 0;
@@ -352,7 +447,7 @@ const utility = (board) => {
 // Minimax: takes board as input and outputs optimal move.
 const minimax = (board) => {
     
-    // Check whose move. Sets varable to X or O.
+    // Checks whose move. Sets varable to X or O.
     const currentPlayer = playerToMove(board);
     let bestMove;
 
@@ -402,9 +497,5 @@ const minimax = (board) => {
         }
         return {value: v, move: move}
     }
-    
-    //console.log(copyBoard);
-    // return {currentPlayer, board, actions, util, move};
     return {bestMove};
-
 }
