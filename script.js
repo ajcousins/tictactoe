@@ -27,47 +27,48 @@ const gameBoard = (() => {
             squares[i].mark = "";
         }
     }
+    startAIButton()
 
     return {squares, current, resetBoard};
 })();
 
 
 function playerAction (coord) {
-    // After first player action..
-    // .. remove option to change opponent.
-    
+    // Function accepts coordinate in "00"-"22" format.
 
-    // Check if square is already filled.
+    // Is the game already finished?
+    if (terminal (gameBoard.current())) return null;
+
+    // Is the proposed move legal?
     let index = gameBoard.squares.findIndex(item => item.coord === coord);
-
-    // If already filled: pass.
     if (gameBoard.squares[index].mark != "") return null;
 
-    // If game has ended: pass.
-    if (gameFlow.turn === 0) return null;
+    // Whose turn is it?
+    let mark = playerToMove(gameBoard.current())
 
-    if (gameFlow.turn == 1) {
-        gameBoard.squares[index].mark = "X";
-        gameBoard.squares[index].div.innerHTML = `<img src="static/X_02.png">`
-        if (checkWin("X")) {
-            gameFlow.changeTurn("1");
-        } else if (checkDraw()) {
-            gameFlow.changeTurn("Draw");
-        } else {
-            gameFlow.changeTurn("playerTwo")
-        }
+    // Apply move to array and screen.
+    gameBoard.squares[index].mark = mark;
+    gameBoard.squares[index].div.innerHTML = `<img src="static/${mark}_02.png">`
+
+    // Proceed back to gameFlow with update.
+    // Is there a winner? If so, who?
+    if (winner(gameBoard.current()) === mark) {
+
+        highlightWin(mark);
+        gameFlow.changeTurn(`${mark}wins`);
+        
+    } else if (terminal (gameBoard.current())) {
+        gameFlow.changeTurn("Draw");
+    }
+
+    // Whose turn is it now?
+    else if (mark === "X") {
+        gameFlow.changeTurn("playerTwoTurn");
     } else {
-        gameBoard.squares[index].mark = "O";
-        gameBoard.squares[index].div.innerHTML = `<img src="static/O_02.png">`
-        if (checkWin("O")) {
-            gameFlow.changeTurn("2");
-        } else if (checkDraw()) {
-            gameFlow.changeTurn("Draw");
-        } else {
-            gameFlow.changeTurn("playerOne")
-        }
-    } 
+        gameFlow.changeTurn("playerOneTurn");}
 }
+
+
 
 
 
@@ -76,7 +77,6 @@ const player = (playerName, symbol) => {
     const mark = (coord) => {
         let index = gameBoard.squares.findIndex(item => item.coord === coord);
         gameBoard.squares[index].mark = `${symbol}`;
-        console.log(`${coord} marked ${symbol}`);
     };
     return {playerName, symbol, mark}
 }
@@ -89,52 +89,46 @@ const playerTwo = player("playerTwo", "O");
 // gameFlow module
 const gameFlow = (() => {
     let turn = 1;
+    const delay = 1000;
     
+    // Disable opponent selection if game started
+    const startCheck = () => {
+        if (isGameStarted(gameBoard.current())) {
+            document.querySelector(".changeOpp1").classList.add("hidden")
+            document.querySelector(".changeOpp2").classList.add("hidden")
+        }
+    }
+
     const changeTurn = function (player) {
-        console.log("changeTurn:", player, "turn", this.turn);
-        console.log("getOpp1:", opponent.getOpp1());
-        console.log("getOpp2:", opponent.getOpp2());
+        startCheck();
         let textDisplay = document.querySelector("#textDisplay");
         if (player == "Draw") {
             this.turn = 0;
             textDisplay.textContent = "Draw";
             tryAgain();
-        } else if (player == 1 || player == 2) {
+        } else if (player === "Xwins" || player === "Owins") {
             this.turn = 0;
-            textDisplay.textContent = `Player ${player} Wins!`;
+            let text;
+            player === "Xwins" ? text = "1" : text = "2";
+            textDisplay.textContent = `Player ${text} Wins!`;
             tryAgain();
-        } else if (player == "playerOne") {
-            console.log("a");
+        } else if (player == "playerOneTurn") {
             this.turn = 1;
             textDisplay.textContent = "Player 1's turn: X";
             if (opponent.getOpp1() === 1) {
-                setTimeout(() => {
-                    console.log("Calls AI function (1a)");
-                    AIController(1);
-                }, 1000);
-                
+                setTimeout(() => {AIController(1);}, delay);
             }
             else if (opponent.getOpp1() === 2) {
-                setTimeout(() => {
-                    console.log("Calls AI function (2a)");
-                    AIController(2);
-                }, 1000);
+                setTimeout(() => {AIController(2);}, delay);
             }
-        } else if (player == "playerTwo") {
-            console.log("b");
+        } else if (player == "playerTwoTurn") {
             this.turn = 2;
             textDisplay.textContent = "Player 2's turn: O";
             if (opponent.getOpp2() === 1) {
-                setTimeout(() => {
-                    console.log("Calls AI function (1b)");
-                    AIController(1);
-                }, 1000);
+                setTimeout(() => {AIController(1);}, delay);
             }
             else if (opponent.getOpp2() === 2) {
-                setTimeout(() => {
-                    console.log("Calls AI function (2b)");
-                    AIController(2);
-                }, 1000);
+                setTimeout(() => {AIController(2);}, delay);
             }
         } 
     }
@@ -152,7 +146,7 @@ const checkDraw = () => {
     if (count === 0) return true;
 }
 
-const checkWin = (X) => {
+const highlightWin = (X) => {
     const winningBoard = [
         [1, 1, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 1, 1, 1, 0, 0, 0],
@@ -187,6 +181,16 @@ const highlight = (pattern, mark) => {
 }
 
 
+const isGameStarted = (board) => {
+    let count = 0;
+    for (let i = 0; i < 9; i++) {
+        if (!board[i]) {
+            count++
+        }
+    }
+    if (count != 9) return true;
+}
+
 // opponent selection module
 const opponent = (() => {
     let opp1 = 0;
@@ -195,25 +199,29 @@ const opponent = (() => {
     const getOpp2 = () => opp2;
     const change1 = document.querySelector(".changeOpp1")
     const change2 = document.querySelector(".changeOpp2")
+    const startButton = document.querySelector("#startAI")
     
     const display = (text, value) => {
         if (value === 1) {
             document.querySelector(`.${text}`).textContent = "Easy Computer"
             document.querySelector(`.${text}`).classList.add("easyColor");
-            if (text == "opp1") {
-                startAIButton(value);
+            if (text === "opp1") {
+                startButton.innerHTML = "Start AI";
             }
+
         } else if (value === 2) {
             document.querySelector(`.${text}`).textContent = "Hard Computer"
             document.querySelector(`.${text}`).classList.remove("easyColor");
             document.querySelector(`.${text}`).classList.add("hardColor");
-            if (text == "opp1") {
-                startAIButton(value);
+            if (text === "opp1") {
+                startButton.innerHTML = "Start AI";
             }
-        } else {
+ 
+        } else if (value === 0) {
             document.querySelector(`.${text}`).textContent = "Human"
             document.querySelector(`.${text}`).classList.remove("hardColor");
             if (text == "opp1") {
+                startButton.innerHTML = "";
                 textDisplay.textContent = "Player 1's turn: X";
             }
         }
@@ -237,27 +245,26 @@ const opponent = (() => {
 
     change1.addEventListener("click", () => nextOpp(1));
     change2.addEventListener("click", () => nextOpp(2));
-
-
     return {getOpp1, getOpp2};
 })();
 
 function tryAgain() {
+    document.querySelector(".changeOpp1").classList.remove("hidden")
+    document.querySelector(".changeOpp2").classList.remove("hidden")
     const button = document.querySelector("#tryAgain")
-    button.innerHTML = "Try Again?";
+    button.innerHTML = "Play Again?";
     button.addEventListener("click", () => {
         resetGame();
+        gameFlow.changeTurn("playerOneTurn");
     })
 }
             
-
 let resetCount = 0;
 function resetGame() {
     
     if (resetCount === 2) {
         location.reload();
     }
-
     gameBoard.resetBoard();
     document.querySelector("#textDisplay").textContent = "Player 1's turn: X";
     for (let i = 0; i < 9; i++) {
@@ -270,23 +277,20 @@ function resetGame() {
     }
     gameFlow.changeTurn("playerOne");
     document.querySelector("#tryAgain").innerHTML = "";
+    document.querySelector("#startAI").innerHTML = "";
+    document.querySelector(".changeOpp2").classList.remove("hidden")
     resetCount++;
-
-
 }
-
-
 
 function startAIButton() {
+    //debugger;
     const button = document.querySelector("#startAI")
-    button.innerHTML = "Start AI"
+    //button.innerHTML = "Start AI"
     button.addEventListener("click", () => {
         button.innerHTML = "";
-        gameFlow.changeTurn("playerOne");
+        gameFlow.changeTurn("playerOneTurn");
     })
 }
-
-
 
 function AIController (AILevel) {
     const coords = ["00", "01", "02", "10", "11", "12", "20", "21", "22"]
@@ -295,8 +299,6 @@ function AIController (AILevel) {
         return;
     }
     if (AILevel === 1) {
-
-
         let moveObj = easyAI(gameBoard.current());
         console.log("Easy", moveObj)
         if (moveObj) {
@@ -305,19 +307,16 @@ function AIController (AILevel) {
             playerAction(coords[move]);
             highlightSquare(move, 1);
 
-
     } else if (AILevel === 2) {
         
-        let moveObj;
-        moveObj = minimax(gameBoard.current()).bestMove.move
+        let moveObj = minimax(gameBoard.current()).bestMove.move
         console.log("Hard", moveObj)
         if (moveObj) {
             move = moveObj[1];
         } else return;
 
-            playerAction(coords[move]);
-            highlightSquare(move, 2);
-
+    playerAction(coords[move]);
+    highlightSquare(move, 2);
     }
 }
 
@@ -339,11 +338,9 @@ function highlightSquare (move, opp) {
 
 // Easy AI 
 const easyAI = (board) => {
-    //setTimeout(function(){
         const legalMoves = actionsList(board);
         let move = legalMoves[Math.floor(Math.random() * legalMoves.length)]
         return move;
-    //}, 500);
 }
 
 const playerToMove = (board) => {
@@ -426,10 +423,10 @@ const winner = (board) => {
                 winner = mark;
             }
         }
-
     }
     return winner;
 }
+
 // Returns boolean whether the game is over or not.
 const terminal = (board) => {
     if (winner(board)) {
@@ -461,7 +458,6 @@ const minimax = (board) => {
 
     if (currentPlayer == "X") {
         bestMove = maxValue(board);
-        //console.log(maxValue(copyBoard));
     } else {
         bestMove = minValue(board);
     }
@@ -475,8 +471,6 @@ const minimax = (board) => {
         let move;
         // For each legal move...
         for (let i = 0; i < legalMoves.length; i++) {
-
-            //debugger;
             let check = minValue(result(state, legalMoves[i])).value
             if (check > v) {
                 v = check;
@@ -495,8 +489,6 @@ const minimax = (board) => {
         let move;
         // For each legal move...
         for (let i = 0; i < legalMoves.length; i++) {
-
-            //debugger;
             let check = maxValue(result(state, legalMoves[i])).value
             if (check < v) {
                 v = check;
